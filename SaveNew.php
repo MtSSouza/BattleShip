@@ -22,7 +22,7 @@
 		
 		if (mysqli_query($conn, $sql)) 
 		{
-			echo "Record updated successfully";
+			echo "Record updated successfully"; 
 		}
 		else 
 		{
