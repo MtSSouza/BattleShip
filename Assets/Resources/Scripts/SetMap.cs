@@ -14,6 +14,7 @@ public class SetMap : MonoBehaviour
 	GameObject Ghosts;
 	DatabaseManager dbMng;
 	int rotation;
+	int timer = 0;
 	
 	float[] gridX;
 	float[] gridY;
@@ -25,7 +26,7 @@ public class SetMap : MonoBehaviour
 	public float enemyOffSetY;
 	public static bool Loaded;
 	
-	public int DropPhase = 0;
+	private int DropPhase = 0;
 	Vector2 mouse;
 	RaycastHit2D hit;
 
@@ -61,6 +62,7 @@ public class SetMap : MonoBehaviour
 	}
 	
 	void Update ()	{
+		timer--;
 		Debug.Log (DropPhase);
 		if(DropPhase<2){
 			DropPhaseUpdate();
@@ -73,10 +75,14 @@ public class SetMap : MonoBehaviour
 		hit = Physics2D.Raycast( mouse, Vector2.zero );
 		if(!Ghost && hit.collider != null && hit.collider.tag=="Player"){
 			if(DropPhase == 0)
+			{
 				Ghosts = Instantiate(prefabGhostShip,new Vector3(hit.collider.transform.position.x, hit.collider.transform.position.y, -1), transform.rotation) as GameObject;
+			}
 			else if(DropPhase == 1)
+			{
 				Ghosts = Instantiate(prefabShip2,new Vector3(hit.collider.transform.position.x, hit.collider.transform.position.y, -1), transform.rotation) as GameObject;
-			Ghost = true;
+			}Ghost = true;
+
 		}
 		else if(Ghost && hit.collider != null&& hit.collider.tag=="Player"){
 			Ghosts.transform.position = new Vector3(hit.collider.transform.position.x, hit.collider.transform.position.y, -1);
@@ -97,60 +103,53 @@ public class SetMap : MonoBehaviour
 			//			Debug.Log((checkShipCollision(new int[] {initialPos,initialPos + 5,initialPos +10}) && Ghosts.transform.eulerAngles == Vector3.zero) ||
 			//			          (checkShipCollision(new int[] {initialPos, initialPos -1,initialPos -2})&& Ghosts.transform.eulerAngles == new Vector3(0,0,270f)));
 		}catch{}
-		if(DropPhase == 0 && hit.collider != null && hit.collider.tag=="Player"){
-			if (hit.collider != null && hit.collider.name != "Ship" && 
-			    ((int.Parse(hit.collider.name) <= 15 && Ghosts.transform.eulerAngles == Vector3.zero) || (int.Parse(hit.collider.name) <= 25 && Ghosts.transform.eulerAngles == new Vector3(0,0,270f))) && Input.GetKeyDown(KeyCode.Mouse0) ){
-				GameObject ship = Instantiate(prefabShip1,new Vector3(hit.collider.transform.position.x, hit.collider.transform.position.y, -1), Ghosts.transform.rotation) as GameObject;
-				if(ship.transform.eulerAngles == new Vector3(0,0,270f)){
+		if (Input.GetKeyDown (KeyCode.Mouse0) && timer <= 0) {
+			if (DropPhase == 0 && hit.collider != null && hit.collider.tag == "Player") {
+				if (hit.collider != null && hit.collider.name != "Ship" && 
+					((int.Parse (hit.collider.name) <= 15 && Ghosts.transform.eulerAngles == Vector3.zero) || (int.Parse (hit.collider.name) <= 25 && Ghosts.transform.eulerAngles == new Vector3 (0, 0, 270f)))) {
+					GameObject ship = Instantiate (prefabShip1, new Vector3 (hit.collider.transform.position.x, hit.collider.transform.position.y, -1), Ghosts.transform.rotation) as GameObject;
+					if (ship.transform.eulerAngles == new Vector3 (0, 0, 270f)) {
 					
-					ship.GetComponent<ShipBehavior>().points = new int[] {initialPos, initialPos -1,initialPos -2};
-					dbMng.ships[0] = initialPos;	
-					dbMng.ships[1] = initialPos - 1;
-					dbMng.ships[2] = initialPos - 2;
-				}
-				else{
-					ship.GetComponent<ShipBehavior>().points = new int[] {initialPos,initialPos + 5,initialPos +10};
+						ship.GetComponent<ShipBehavior> ().points = new int[] {initialPos, initialPos - 1,initialPos - 2};
+						dbMng.ships [0] = initialPos;	
+						dbMng.ships [1] = initialPos - 1;
+						dbMng.ships [2] = initialPos - 2;
+					} else {
+						ship.GetComponent<ShipBehavior> ().points = new int[] {initialPos,initialPos + 5,initialPos + 10};
 					
-					dbMng.ships[0] = initialPos;	
-					dbMng.ships[1] = initialPos + 5;
-					dbMng.ships[2] = initialPos + 10;
+						dbMng.ships [0] = initialPos;	
+						dbMng.ships [1] = initialPos + 5;
+						dbMng.ships [2] = initialPos + 10;
+					}
+					DropPhase = 1;
+					Destroy (Ghosts);
+					timer = 100;
+					Ghost = false;
+				} else if (hit.collider == null || int.Parse (hit.collider.name) > 15) {
+					if (Input.GetKeyDown (KeyCode.Mouse0)) {
+						Warnings.type = "outside";
+					}
 				}
-				DropPhase = 1;
-				Destroy(Ghosts);
-				Ghost = false;
-			}
-			else if(hit.collider == null || int.Parse(hit.collider.name) > 15){
-				if(Input.GetKeyDown(KeyCode.Mouse0)){
+			} else if (DropPhase == 1 && hit.collider != null && hit.collider.tag == "Player" && Ghost) {
+				if (hit.collider != null && hit.collider.name != "Ship" && 
+					((int.Parse (hit.collider.name) <= 15 && Ghosts.transform.eulerAngles == Vector3.zero) || (int.Parse (hit.collider.name) <= 25 && Ghosts.transform.eulerAngles == new Vector3 (0, 0, 270f)))) {
+					GameObject ship = Instantiate (prefabShip2, new Vector3 (hit.collider.transform.position.x, hit.collider.transform.position.y, -1), Ghosts.transform.rotation) as GameObject;
+					if (ship.transform.eulerAngles == new Vector3 (0, 0, 270f)) {
+						ship.GetComponent<ShipBehavior> ().points = new int[] {initialPos, initialPos - 1};
+						dbMng.ships [3] = initialPos;	
+						dbMng.ships [4] = initialPos - 1;
+					} else {
+						ship.GetComponent<ShipBehavior> ().points = new int[] {initialPos,initialPos + 5};
+						dbMng.ships [3] = initialPos;	
+						dbMng.ships [4] = initialPos + 5;
+					}
+				}
+				Destroy (Ghosts);
+				Ghosts = null;
+			} else if (hit.collider == null || int.Parse (hit.collider.name) > 15) {
+				if (Input.GetKeyDown (KeyCode.Mouse0)) {
 					Warnings.type = "outside";
 				}
-			}
-		}
-		else if(DropPhase == 1 && hit.collider != null&& hit.collider.tag=="Player"){
-			if (hit.collider != null && hit.collider.name != "Ship"  &&
-			    ((int.Parse(hit.collider.name) <= 20 && Ghosts.transform.eulerAngles == Vector3.zero) || 
-			 (int.Parse(hit.collider.name) <= 25 && Ghosts.transform.eulerAngles == new Vector3(0,0,270f)))&&
-			    Input.GetKeyDown(KeyCode.Mouse0) && 
-			    !((checkShipCollision(new int[] {initialPos,initialPos + 5}) && Ghosts.transform.eulerAngles == Vector3.zero) ||
-			  (checkShipCollision(new int[] {initialPos, initialPos -1})&& Ghosts.transform.eulerAngles == new Vector3(0,0,270f))) ){
-				GameObject ship =  Instantiate(prefabShip2,new Vector3(hit.collider.transform.position.x, hit.collider.transform.position.y, -1), Ghosts.transform.rotation) as GameObject;
-				if(ship.transform.eulerAngles == new Vector3(0,0,270f)){
-					ship.GetComponent<ShipBehavior>().points = new int[] {initialPos, initialPos -1};
-					dbMng.ships[3] = initialPos;	
-					dbMng.ships[4] = initialPos - 1;
-				}
-				else{
-					ship.GetComponent<ShipBehavior>().points = new int[] {initialPos,initialPos + 5};
-					dbMng.ships[3] = initialPos;	
-					dbMng.ships[4] = initialPos + 5;
-				}
-			}
-			DropPhase=2;
-			Destroy(Ghosts);
-			Ghosts = null;
-		}
-		else if(hit.collider == null || int.Parse( hit.collider.name) > 15){
-			if(Input.GetKeyDown(KeyCode.Mouse0)){
-				Warnings.type = "outside";
 			}
 		}
 	}
